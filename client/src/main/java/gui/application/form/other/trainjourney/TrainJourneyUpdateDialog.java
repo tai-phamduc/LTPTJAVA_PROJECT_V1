@@ -24,7 +24,6 @@ import javax.swing.JTextField;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import dao.LineDAO;
 import dao.SeatDAO;
 import dao.StopDAO;
 import dao.TrainJourneyDAO;
@@ -62,7 +61,6 @@ public class TrainJourneyUpdateDialog extends JDialog implements ActionListener 
 	private JPanel giaGocContainer;
 	private JTextField giaGocTextField;
 	private JLabel giaGocLabel;
-	private LineDAO lineDAO;
 	private JPanel header;
 	private JPanel container4;
 	private JPanel buttonContainer;
@@ -79,7 +77,6 @@ public class TrainJourneyUpdateDialog extends JDialog implements ActionListener 
 		superContainer = new JPanel(new MigLayout("wrap, fill, insets 24", "[fill]", "[fill]"));
 		
 		seatDAO = new SeatDAO();
-		lineDAO = new LineDAO();
 		trainJourneyDAO = new TrainJourneyDAO();
 		stopDAO = new StopDAO();
 
@@ -143,7 +140,9 @@ public class TrainJourneyUpdateDialog extends JDialog implements ActionListener 
 		duongDiContainer = new JPanel(new MigLayout("wrap", "[]", "[][]"));
 		duongDiLabel = new JLabel("Đường đi");
 		duongDiCombobox = new JComboBox<Line>();
-		List<Line> lineList = lineDAO.getAllLine();
+		payload = new HashMap<>();
+		Object response = ServerFetcher.fetch("line", "getAllLine", payload);
+		List<Line> lineList = (List<Line>) response;
 		lineList.forEach(line -> {
 			duongDiCombobox.addItem(line);
 		});

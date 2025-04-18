@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -20,7 +21,6 @@ import javax.swing.event.DocumentListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import dao.LineDAO;
 import dao.StationDAO;
 import dao.TrainJourneyDAO;
 import entity.Station;
@@ -29,6 +29,7 @@ import entity.Stop;
 import gui.application.Application;
 import net.miginfocom.swing.MigLayout;
 import raven.toast.Notifications;
+import utils.ServerFetcher;
 
 public class LineAddingDialog extends JDialog implements ActionListener {
 
@@ -48,7 +49,6 @@ public class LineAddingDialog extends JDialog implements ActionListener {
 	private JPanel numberOfStationContainer;
 	private JTextField txtNumberOfStation;
 	private JLabel lblNumberOfStation;
-	private LineDAO lineDAO;
 	private JPanel header;
 	private JPanel container4;
 	private JPanel buttonContainer;
@@ -62,7 +62,6 @@ public class LineAddingDialog extends JDialog implements ActionListener {
 
 	public LineAddingDialog() {
 		this.setLayout(new BorderLayout());
-		lineDAO = new LineDAO();
 
 		trainJourneyDAO = new TrainJourneyDAO();
 
@@ -237,10 +236,17 @@ public class LineAddingDialog extends JDialog implements ActionListener {
 				stationInfoList.add(new StationLine(index, station, distance));
 			}
 
-			String lineID = lineDAO.addLine(lineName);
+			HashMap<String, String> payload = new HashMap<>();
+			payload.put("lineName", lineName);
+			String lineID = (String) ServerFetcher.fetch("line", "addLine", payload);
 			
 			for (StationLine stationLine : stationInfoList) {
-				lineDAO.addLineStop(lineID, stationLine);
+				payload = new HashMap<>();
+				payload.put("lineID", lineID);
+				payload.put("stationID", stationLine.getStation().getStationID());
+				payload.put("index", String.valueOf(stationLine.getIndex()));
+				payload.put("distance", String.valueOf(stationLine.getDistance()));
+				boolean success = (boolean) ServerFetcher.fetch("line", "addLineStop", payload);
 			}
 
 			// update the table

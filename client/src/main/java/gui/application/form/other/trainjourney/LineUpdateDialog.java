@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -21,7 +22,6 @@ import javax.swing.event.DocumentListener;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import dao.LineDAO;
 import dao.StationDAO;
 import dao.TrainJourneyDAO;
 import entity.Line;
@@ -31,6 +31,7 @@ import entity.Stop;
 import gui.application.Application;
 import net.miginfocom.swing.MigLayout;
 import raven.toast.Notifications;
+import utils.ServerFetcher;
 
 public class LineUpdateDialog extends JDialog implements ActionListener {
 
@@ -50,7 +51,6 @@ public class LineUpdateDialog extends JDialog implements ActionListener {
 	private JPanel numberOfStationContainer;
 	private JTextField txtNumberOfStation;
 	private JLabel lblNumberOfStation;
-	private LineDAO lineDAO;
 	private JPanel header;
 	private JPanel container4;
 	private JPanel buttonContainer;
@@ -66,8 +66,7 @@ public class LineUpdateDialog extends JDialog implements ActionListener {
 
 	public LineUpdateDialog(Line line, List<StationLine> stationLineList) {
 		this.setLayout(new BorderLayout());
-		lineDAO = new LineDAO();
-		
+
 		this.line = line;
 		this.stationLineList = stationLineList;
 
@@ -197,12 +196,22 @@ public class LineUpdateDialog extends JDialog implements ActionListener {
 				stationInfoList.add(new StationLine(index, station, distance));
 			}
 
-			lineDAO.updateLine(new Line(line.getLineID(), lineName));
+			HashMap<String, String> payload = new HashMap<>();
+			payload.put("lineID", line.getLineID());
+			payload.put("lineName", lineName);
+			ServerFetcher.fetch("line", "updateLine", payload);
 
-			lineDAO.removeAllByLineID(line.getLineID());
+			payload = new HashMap<>();
+			payload.put("lineID", line.getLineID());
+			ServerFetcher.fetch("line", "removeAllByLineID", payload);
 			
 			for (StationLine stationLine : stationInfoList) {
-				lineDAO.addLineStop(line.getLineID(), stationLine);
+				payload = new HashMap<>();
+				payload.put("lineID", line.getLineID());
+				payload.put("stationID", stationLine.getStation().getStationID());
+				payload.put("index", String.valueOf(stationLine.getIndex()));
+				payload.put("distance", String.valueOf(stationLine.getDistance()));
+				boolean success = (boolean) ServerFetcher.fetch("line", "addLineStop", payload);
 			}
 
 			// update the table

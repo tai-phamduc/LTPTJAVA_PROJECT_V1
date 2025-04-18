@@ -14,7 +14,12 @@ public class Station implements Serializable {
 		this.stationName = stationName;
 	}
 
-	public String getStationID() {
+    public Station(String stationID) {
+		super();
+		this.stationID = stationID;
+    }
+
+    public String getStationID() {
 		return stationID;
 	}
 

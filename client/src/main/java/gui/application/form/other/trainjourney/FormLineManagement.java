@@ -178,9 +178,13 @@ public class FormLineManagement extends JPanel implements ActionListener {
 					JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để cập nhật.");
 				} else {
 					String lineID = (String) lineTable.getValueAt(selectedRow, 0);
-					Line line = lineDAO.getLineByID(lineID);
-					List<StationLine> stationLineList = lineDAO.getLineStopByLineID(line.getLineID());
+					HashMap<String, String> payload = new HashMap<>();
+					payload.put("lineID", lineID);
+					Line line = (Line) ServerFetcher.fetch("line", "getLineByID", payload);
 
+					payload = new HashMap<>();
+					payload.put("lineID", line.getLineID());
+					List<StationLine> stationLineList = (List<StationLine>) ServerFetcher.fetch("line", "getLineStopByLineID", payload);
 					lineUpdateDialog = new LineUpdateDialog(line, stationLineList);
 					lineUpdateDialog.setFormLineManagement(this);
 					lineUpdateDialog.setModal(true);
@@ -203,7 +207,9 @@ public class FormLineManagement extends JPanel implements ActionListener {
 
 	public void handleSearch() {
 		String searchText = txtSearch.getText().trim();
-		List<LineDetails> lineDetailsList = lineDAO.getAllLineDetailsByName(searchText);
+		HashMap<String, String> payload = new HashMap<>();
+		payload.put("lineName", searchText);
+		List<LineDetails> lineDetailsList = (List<LineDetails>) ServerFetcher.fetch("line", "getAllLineDetailsByName", payload);
 		lineTableModel.setLineDetailsList(lineDetailsList);
 		lineTableModel.fireTableDataChanged();
 	}

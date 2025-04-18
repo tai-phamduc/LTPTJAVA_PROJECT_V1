@@ -1,11 +1,9 @@
 import dao.AccountDAO;
 import dao.CoachDAO;
+import dao.LineDAO;
 import dao.TrainDAO;
 
-import entity.Account;
-import entity.Coach;
-import entity.Employee;
-import entity.Train;
+import entity.*;
 
 
 import java.io.*;
@@ -23,6 +21,8 @@ public class Server {
     private static final AccountDAO accountDAO = new AccountDAO();
     private static final CoachDAO coachDAO = new CoachDAO();
     private static final TrainDAO trainDAO = new TrainDAO();
+    private static final LineDAO lineDAO = new LineDAO();
+
     private static final ExecutorService threadPool = Executors.newFixedThreadPool(MAX_THREADS);
 
     public static void main(String[] args) {
@@ -85,6 +85,7 @@ public class Server {
                     case "account" -> handleAccount(action, payload);
                     case "coach" -> handleCoach(action, payload);
                     case "train" -> handleTrain(action, payload);
+                    case "line" -> handleLine(action, payload);
                     default -> "Unknown type: " + type;
                 };
             } catch (Exception e) {
@@ -216,6 +217,52 @@ public class Server {
         } catch (Exception e) {
             System.err.println("[TRAIN ERROR] " + e.getMessage());
             return "Error processing train request: " + e.getMessage();
+        }
+    }
+
+    private static Object handleLine(String action, HashMap<String, String> payload) {
+        try {
+            System.out.println("[LINE ACTION] " + action + " with payload: " + payload);
+            Object result = switch (action) {
+                case "getAllLine" -> lineDAO.getAllLine();
+                case "getAllLineDetailsByName" ->
+                        lineDAO.getAllLineDetailsByName(payload.get("lineName"));
+                case "getLineStops" ->
+                        lineDAO.getLineStops(payload.get("lineID"));
+                case "getAllLineDetails" ->
+                        lineDAO.getAllLineDetails();
+                case "removeLineByID" ->
+                        lineDAO.removeLineByID(payload.get("lineID"));
+                case "addLine" ->
+                        lineDAO.addLine(payload.get("lineName"));
+                case "addLineStop" -> {
+                    StationLine stationLine = new StationLine(
+                            Integer.parseInt(payload.get("index")),
+                            new Station(payload.get("stationID")),
+                            Integer.parseInt(payload.get("distance"))
+                    );
+                    yield lineDAO.addLineStop(payload.get("lineID"), stationLine);
+                }
+                case "getLineByID" ->
+                        lineDAO.getLineByID(payload.get("lineID"));
+                case "getLineStopByLineID" ->
+                        lineDAO.getLineStopByLineID(payload.get("lineID"));
+                case "updateLine" -> {
+                    Line line = new Line(
+                            payload.get("lineID"),
+                            payload.get("lineName")
+                    );
+                    yield lineDAO.updateLine(line);
+                }
+                case "removeAllByLineID" ->
+                        lineDAO.removeAllByLineID(payload.get("lineID"));
+                default -> "Unknown line action: " + action;
+            };
+            System.out.println("[LINE RESULT] " + result);
+            return result;
+        } catch (Exception e) {
+            System.err.println("[LINE ERROR] " + e.getMessage());
+            return "Error processing line request: " + e.getMessage();
         }
     }
 }

@@ -1,22 +1,22 @@
 package gui.application.form.other.trainjourney;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import dao.LineDAO;
 import entity.LineDetails;
+import utils.ServerFetcher;
 
 public class LineTableModel extends AbstractTableModel {
 
 	private static final long serialVersionUID = 1L;
 	private List<LineDetails> lineDetailsList;
 	private String[] columnNames = { "Mã đường đi", "Tên đường đi", "Ga đi", "Ga đến", "Khoảng cách" };
-	private LineDAO lineDAO;
 
 	public LineTableModel() {
-		lineDAO = new LineDAO();
-		lineDetailsList = lineDAO.getAllLineDetails();
+		HashMap<String, String> payload = new HashMap<>();
+		lineDetailsList = (List<LineDetails>) ServerFetcher.fetch("line", "getAllLineDetails", payload);
 	}
 
 	@Override

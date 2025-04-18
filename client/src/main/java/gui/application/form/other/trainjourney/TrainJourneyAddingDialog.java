@@ -24,7 +24,6 @@ import javax.swing.JTextField;
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import dao.LineDAO;
 import dao.SeatDAO;
 import dao.TrainJourneyDAO;
 import entity.Line;
@@ -61,7 +60,6 @@ public class TrainJourneyAddingDialog extends JDialog implements ActionListener 
 	private JPanel giaGocContainer;
 	private JTextField giaGocTextField;
 	private JLabel giaGocLabel;
-	private LineDAO lineDAO;
 	private JPanel header;
 	private JPanel container4;
 	private JPanel buttonContainer;
@@ -69,11 +67,11 @@ public class TrainJourneyAddingDialog extends JDialog implements ActionListener 
 	private ArrayList<StopRow> stopRowList;
 	private List<Stop> stopList;
 	private JPanel superContainer;
+	private HashMap<String, String> payload;
 
-    public TrainJourneyAddingDialog() {
+	public TrainJourneyAddingDialog() {
     	this.setLayout(new BorderLayout());
     	seatDAO = new SeatDAO();
-    	lineDAO = new LineDAO();
     	trainJourneyDAO = new TrainJourneyDAO();
     	    	
     	this.setUndecorated(true);
@@ -118,7 +116,7 @@ public class TrainJourneyAddingDialog extends JDialog implements ActionListener 
     	tauLabel = new JLabel("Tàu");
     	tauCombobox = new JComboBox<Train>();
 
-		HashMap<String, String> payload = new HashMap<>();
+		payload = new HashMap<>();
 		List<Train> trainList = (List<Train>) ServerFetcher.fetch("train", "getAllTrain", payload);
     	trainList.forEach(train -> {
     		tauCombobox.addItem(train);
@@ -131,7 +129,9 @@ public class TrainJourneyAddingDialog extends JDialog implements ActionListener 
     	duongDiContainer = new JPanel(new MigLayout("wrap", "[]", "[][]"));
     	duongDiLabel = new JLabel("Đường đi");
     	duongDiCombobox = new JComboBox<Line>();
-    	List<Line> lineList = lineDAO.getAllLine();
+		payload = new HashMap<>();
+		Object response = ServerFetcher.fetch("line", "getAllLine", payload);
+		List<Line> lineList = (List<Line>) response;
     	lineList.forEach(line -> {
     		duongDiCombobox.addItem(line);
     	});
@@ -204,7 +204,9 @@ public class TrainJourneyAddingDialog extends JDialog implements ActionListener 
         Line selectedLine = (Line) duongDiCombobox.getSelectedItem();
         stopRowList = new ArrayList<StopRow>();
         if (selectedLine != null) {
-            stopList = lineDAO.getLineStops(selectedLine.getLineID()); 
+			payload = new HashMap<>();
+			payload.put("lineID", selectedLine.getLineID());
+			List<Stop> stopList = (List<Stop>) ServerFetcher.fetch("line", "getLineStops", payload);
 
             for (Stop stop : stopList) {
                 StopRow stopRow = new StopRow(stop);
